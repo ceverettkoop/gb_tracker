@@ -5,12 +5,12 @@ SECTION "Intro", ROMX
 Intro::
     ;Turn on audio
     ld a, $80
-    ldh [rAUDENA], a
+    ld [rAUDENA], a
     ; Enable all channels in stereo
     ld a, $FF
-    ldh [rAUDTERM], a
+    ld [rAUDTERM], a
     ; Set volume max both channels
     ld a, $FF
-    ldh [rAUDVOL], a
+    ld [rAUDVOL], a
 
-	jr Tone
+	jp Tone

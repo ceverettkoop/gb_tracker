@@ -10,10 +10,10 @@ PADVALUE := 0xFF
 VERSION := 0
 
 # 4-ASCII letter game ID
-GAMEID := BOIL
+GAMEID := GTRK
 
 # Game title, up to 11 ASCII chars
-TITLE := BOILERPLATE
+TITLE := GBTRACKER
 
 # New licensee, 2 ASCII chars
 # Homebrew games FTW!
@@ -34,7 +34,7 @@ MBC := 0x00
 SRAMSIZE := 0x00
 
 # ROM name
-ROMNAME := boilerplate
+ROMNAME := gbtracker
 ROMEXT  := gb
 
 
@@ -46,7 +46,7 @@ ASFLAGS += -h
 
 # Export all labels
 # This means they must all have unique names, but they will all show up in the .sym and .map files
-# ASFLAGS += -E
+ASFLAGS += -E
 
 # Game Boy Color compatible
 # FIXFLAGS += -c
