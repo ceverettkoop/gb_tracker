@@ -2,31 +2,31 @@ INCLUDE "defines.asm"
 
 SECTION "Audio", ROMX
 
-Init_Notes:
-
-
 Init_Scale:
-    xor b, b ;init loop counter to 0
+    xor a, a ;init loop counter to 0
+    push af
 
 ;loop through scale, 36 notes, increments by two bc note is 16 bit
-Scale:
-    push bc
-    inc b
-    inc b ;up two now
-    ;check if b is 72 i.e. we are done
-    ldh a, b
+Scale_Note:
+    pop af
+    push af
+    inc a
+    inc a ;up two now
+    ;check if a is 72 i.e. next note would be beyond the end
     cp a, 72
-    jr z, Reset_Loop ;if b = 72 set b and stack value to zero
-    jr Tone ;else take current value on stack to Tone
+    call nz, Tone ;if a != 72 play tone based on value on stack (two less than a)
+    jr nz, Wait;flag should still be nz so now we
+    ;ELSE set a to zero and int on stack to zero
+    pop af
+    xor a,a ;set note int back to zero
+    push af
+    call Tone
 
-Reset_Loop:
-    ;set b to zero and int on stack to zero
-    pop bc
-    xor b,b
-    push bc
-    jr Tone
+Wait:
+    ;TODO kill time somehow
+    jr Scale_Note
 
-;play note on ch 1 based on int value on stack (0-35)
+;play note on ch 1 based on int value on stack (0-70 (note past C1 * 2))
 Tone:
     ;NR10 = sweep, we are ignoring
     ;NR11 = length timer and duty cycle
@@ -36,13 +36,15 @@ Tone:
     ld a, %11110000 ;max volume no envelope
     ld [rNR12], a
 
-    ;get note integer from stack
+    ;get note integer from stack and put it back
     pop af
+    push af
     ld hl, Notes
     add hl, af ;offset hl ptr by note value from stack
 
-    ;NR14 high bits (need to discard first 4 bits? actually need to set them to some value)
-    ld a, [hl] ;TODO FIX FIRST HIGH FOUR BITS
+    ;NR14 high bits
+    ld a, [hl];
+    or a, %10000000;only using low 4, set high 4 
     ld [rNR14], a
 
     inc hl ;move up one byte
@@ -51,11 +53,9 @@ Tone:
     ld a, [hl]
     ld [rNR13], a
 
-    ;TODO WAIT FOR A SECOND HERE
-    jr Scale ;to note increment loop
-
+    ret
 Done:
-    jp Done ; loop forever if we get here
+    rst Crash; we shouldn't be here
 
 ;upper and lower bytes to describe notes from C1 to C5, in just intonation
 ;highest 4 bits represent note A = 0, A# = 1, B = 2, C = 3, C# = 4 etc
