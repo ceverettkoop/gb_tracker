@@ -27,7 +27,7 @@ Scale_Note:
 Tone:
     ;NR10 = sweep, we are ignoring
     ;NR11 = length timer and duty cycle
-    ld a, %10000001 ;50% duty cycle and 0 (infinite) length timer
+    ld a, %10000000 ;50% duty cycle and 0 (infinite) length timer
     ld [rNR11], a
     ;NR12 = vol and envelope
     ld a, %11110000 ;max volume no envelope
@@ -46,13 +46,12 @@ Tone:
 
     ;NR14 high bits
     ld a, [hl];
-    or a, %11000000;only using low 4, set high 4 
+    or a, %10000000;only using low 4, set high 4 to indicate on and no time limit
     ld [rNR14], a
 
     ret
 
 Wait:
-    ;TODO kill time somehow
     ld a, %00000100 
     ld [rTAC], a; timer enable and ping 4096 hz
     ld a, 41 
@@ -61,7 +60,7 @@ Wait:
     ld d, a
 Wait_loop: 
     ld a, d
-    cp 30; check for 30th iteration
+    cp 20; check for Nth iteration
     jr z, Scale_Note;exit on true
     ld a, [rIF]
     bit 2, a ;check second bit
