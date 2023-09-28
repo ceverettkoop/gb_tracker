@@ -3,30 +3,25 @@ INCLUDE "defines.asm"
 SECTION "Audio", ROMX
 
 Init_Scale:
-    xor a, a ;init loop counter to 0
-    push af
+    xor a ;init loop counter to 0
+    ld b, a
+    ld c, a
 
-;loop through scale, 36 notes, increments by two bc note is 16 bit
+    ;loop through scale, 36 notes, increments b by two bc note is 16 bit
 Scale_Note:
-    pop af
-    push af
-    inc a
-    inc a ;up two now
+    ld a, c
+    inc c
+    inc c ;up two now
     ;check if a is 72 i.e. next note would be beyond the end
     cp a, 72
     call nz, Tone ;if a != 72 play tone based on value on stack (two less than a)
-    jr nz, Wait;flag should still be nz so now we
+    jr nz, Wait;flag should still be nz so now we can skip else branch below
     ;ELSE set a to zero and int on stack to zero
-    pop af
-    xor a,a ;set note int back to zero
-    push af
+    xor a
+    ld c, a;set note int back to zero
     call Tone
 
-Wait:
-    ;TODO kill time somehow
-    jr Scale_Note
-
-;play note on ch 1 based on int value on stack (0-70 (note past C1 * 2))
+;play note on ch 1 based on int value in b register (0-70 (note past C1 * 2))
 Tone:
     ;NR10 = sweep, we are ignoring
     ;NR11 = length timer and duty cycle
@@ -36,11 +31,9 @@ Tone:
     ld a, %11110000 ;max volume no envelope
     ld [rNR12], a
 
-    ;get note integer from stack and put it back
-    pop af
-    push af
+    ;get note integer from b and offset 
     ld hl, Notes
-    add hl, af ;offset hl ptr by note value from stack
+    add hl, bc ;offset hl ptr by note value from loop
 
     ;NR14 high bits
     ld a, [hl];
@@ -52,11 +45,32 @@ Tone:
     ; target period is 504 which supposedly is 261 hz eg middle C
     ld a, [hl]
     ld [rNR13], a
-
     ret
+
+Wait:
+    ;TODO kill time somehow
+    ld a, %00000100 
+    ld [rTAC], a; timer enable and ping 4096 hz
+    ld a, 41 
+    ld [rTMA], a ;w module get timer to roughly 100 hz? so we should catch it as it advances
+    xor a
+    ld d, a
+Wait_loop: 
+    ld a, d
+    cp 100; check for 100th iteration
+    jr z, Scale_Note;exit on true
+    ld a, [rIF]
+    bit 2, a ;check second bit
+    jr nz, Wait_loop;do not increment if timer did not fire
+    inc d ;else increment
+    ld hl, rIF;unset timer bit
+    res 2, [hl];unset timer bit
+    jr Wait_loop
+
 Done:
     rst Crash; we shouldn't be here
 
+    
 ;upper and lower bytes to describe notes from C1 to C5, in just intonation
 ;highest 4 bits represent note A = 0, A# = 1, B = 2, C = 3, C# = 4 etc
 ;36 notes known (0-35)
