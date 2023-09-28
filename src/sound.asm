@@ -7,7 +7,7 @@ Init_Scale:
     ld b, a
     ld c, a
 
-    ;loop through scale, 36 notes, increments b by two bc note is 16 bit
+;loop through scale, 36 notes, increments b by two bc note is 16 bit
 Scale_Note:
     ld a, c
     inc c
@@ -20,12 +20,14 @@ Scale_Note:
     xor a
     ld c, a;set note int back to zero
     call Tone
+    jr Scale_Note
 
-;play note on ch 1 based on int value in b register (0-70 (note past C1 * 2))
+;play note on ch 1 based on int value in bc register (0-70 (note past C1 * 2))
+; @param bc: note (0-70)
 Tone:
     ;NR10 = sweep, we are ignoring
     ;NR11 = length timer and duty cycle
-    ld a, %10000000 ;50% duty cycle and 0 length timer
+    ld a, %10000001 ;50% duty cycle and 0 (infinite) length timer
     ld [rNR11], a
     ;NR12 = vol and envelope
     ld a, %11110000 ;max volume no envelope
@@ -35,16 +37,18 @@ Tone:
     ld hl, Notes
     add hl, bc ;offset hl ptr by note value from loop
 
-    ;NR14 high bits
-    ld a, [hl];
-    or a, %10000000;only using low 4, set high 4 
-    ld [rNR14], a
-
-    inc hl ;move up one byte
+    ;words were loaded big endian
     ;NR13 low 8 bits of ch1 period value
-    ; target period is 504 which supposedly is 261 hz eg middle C
     ld a, [hl]
     ld [rNR13], a
+
+    inc hl ;move up one byte
+
+    ;NR14 high bits
+    ld a, [hl];
+    or a, %11000000;only using low 4, set high 4 
+    ld [rNR14], a
+
     ret
 
 Wait:
@@ -57,11 +61,11 @@ Wait:
     ld d, a
 Wait_loop: 
     ld a, d
-    cp 100; check for 100th iteration
+    cp 30; check for 30th iteration
     jr z, Scale_Note;exit on true
     ld a, [rIF]
     bit 2, a ;check second bit
-    jr nz, Wait_loop;do not increment if timer did not fire
+    jr z, Wait_loop;do not increment if timer did not fire
     inc d ;else increment
     ld hl, rIF;unset timer bit
     res 2, [hl];unset timer bit

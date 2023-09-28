@@ -13,4 +13,4 @@ Intro::
     ld a, $FF
     ld [rAUDVOL], a
 
-	jp Tone
+	jp Init_Scale
