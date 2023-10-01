@@ -121,7 +121,7 @@ SECTION "Handlers", ROM0[$40]
 	ds $50 - @
 
 ; Timer handler
-	rst $38
+	jp Advance_song
 	ds $58 - @
 
 ; Serial handler
