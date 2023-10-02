@@ -1,4 +1,5 @@
 INCLUDE "defines.asm"
+INCLUDE "constants.asm"
 
 SECTION "Songs", ROMX 
 Test_song_notes:
@@ -20,7 +21,6 @@ Advance_song:
     jr z, Next_note
     ei
     ret ;else done
-
 ;advance note position and play note at note_pos
 Next_note:
     xor a

@@ -1,4 +1,5 @@
 INCLUDE "defines.asm"
+INCLUDE "constants.asm"
 
 SECTION "Intro", ROMX
 
@@ -17,11 +18,9 @@ Intro::
     ld [note_timer], a ; note timer at zero
     dec a
     ld [note_pos], a ; pos will increment to 0 on first run
-    ld a, 64
+    ld a, BASE_LEN
     ld [note_len], a ;default note length
-
-
-Timer_Init:
+;timer init
     ld a, %00000100 
     ld [rTAC], a; timer enable and ping 4096 hz
     ld a, 41 
