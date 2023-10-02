@@ -2,7 +2,6 @@ INCLUDE "defines.asm"
 
 SECTION "Intro", ROMX
 
-
 Intro::
     ;Turn on audio
     ld a, $80
@@ -13,6 +12,14 @@ Intro::
     ; Set volume max both channels
     ld a, $FF
     ld [rAUDVOL], a
+    ;init variable default values
+    xor a
+    ld [note_timer], a
+    dec a
+    ld [note_pos], a ; pos will increment to 0 on first run
+    ld a, 64
+    ld [note_len], a ;default note length
+
 
 Timer_Init:
     ld a, %00000100
@@ -21,5 +28,4 @@ Timer_Init:
     ld [rTAC], a; timer enable and ping 4096 hz
     ld a, 41 
     ld [rTMA], a ;w module get timer to roughly 100 hz? so we should catch it as it advances 
-
-	jp Init_Scale
+    jp Advance_song

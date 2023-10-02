@@ -1,36 +1,39 @@
 INCLUDE "defines.asm"
 
-SECTION "Song_var", WRAMX
-    song_pos db 0 ; ticks up to match note length and advance note on match
-    note_len db 64;
-
+SECTION "Songs", ROMX 
+Test_song_notes:
+    ; song data that will be iterated through here
+    ; todo implement variable length
+    db 20
+    db 22
+    db 24
+    db 72 ; 72 = flag to stop
 
 SECTION "Song", ROMX
 Advance_song:
-    ld a, note_len
+    ld a, [note_len]
     ld b, a
-    ld a, song_pos
+    ld a, [note_timer]
     inc a
-    ld song_pos, a
-    cp b
+    ld [note_timer], a
+    cp b ;if note_pos == note_len advance note
+    jr z, Next_note
+Wait_loop:
+    jr Wait_loop ;loop until called again
 
-;scale stuff
-Init_Scale:
-    xor a ;init loop counter to 0
-    ld b, a
-    ld c, a
-
-;loop through scale, 36 notes, increments b by two bc note is 16 bit
-Scale_Note:
-    ld a, c
-    inc c
-    inc c ;up two now
-    ;check if a is 72 i.e. next note would be beyond the end
-    cp a, 72
-    call nz, Tone ;if a != 72 play tone based on value on stack (two less than a)
-    jr nz, Wait;flag should still be nz so now we can skip else branch below
-    ;ELSE set a to zero and int on stack to zero
+;advance note position and play note at note_pos
+Next_note:
     xor a
-    ld c, a;set note int back to zero
-    call Tone
-    jr Scale_Note
+    ld [note_timer], a
+    ld a, [note_pos]
+    inc a 
+    ld [note_pos], a
+    ld c, a
+    xor a
+    ld b, a ;zero b so bc = note_pos one byte
+    ld hl, Test_song_notes ;get note byte int from the song
+    add hl, bc
+    ld c, [hl]
+    call Tone ; should play until called again
+
+    ret
