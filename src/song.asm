@@ -16,10 +16,10 @@ Advance_song:
     ld a, [note_timer]
     inc a
     ld [note_timer], a
-    cp b ;if note_pos == note_len advance note
+    cp b ;if note_timer == note_len advance note
     jr z, Next_note
-Wait_loop:
-    jr Wait_loop ;loop until called again
+    ei
+    ret ;else done
 
 ;advance note position and play note at note_pos
 Next_note:
@@ -35,5 +35,5 @@ Next_note:
     add hl, bc
     ld c, [hl]
     call Tone ; should play until called again
-
+    ei
     ret

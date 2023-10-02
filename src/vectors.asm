@@ -107,29 +107,26 @@ Crash::
 	di ; Doing this as soon as possible to avoid interrupts messing up
 	jp HandleCrash
 
-SECTION "Handlers", ROM0[$40]
-
-; VBlank handler
+SECTION "Vblank_handler", ROM0[$0040]
 	push af
 	ldh a, [hLCDC]
 	ldh [rLCDC], a
 	jp VBlankHandler
 	ds $48 - @
 
-; STAT handler
+SECTION "Lcd_handler", ROM0[$0048]
 	rst $38
-	ds $50 - @
+	ds $50 - @, 0 ; unused
 
-; Timer handler
-	call Advance_song
-	ret
-	ds $58 - @
+SECTION "Timer_handler", ROM0[$0050]
+	jp Advance_song
+	ds $58 - @, 0 ; unused
 
-; Serial handler
+SECTION "Serial_handler", ROM0[$0058]
 	rst $38
-	ds $60 - @
+	ds $60 - @, 0 ; unused
 
-; Joypad handler (useless)
+SECTION "Joypad_handler", ROM0[$0060]
 	rst $38
 
 SECTION "VBlank handler", ROM0
