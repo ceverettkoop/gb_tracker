@@ -6,11 +6,11 @@ Test_song_notes:
     ; song data that will be iterated through here
     ; todo implement variable length
     db 20 ; tone
-    db 32 ; len
+    db 16 ; len
     db 22 ; tone
-    db 12 ; len
+    db 18 ; len
     db 24 ; tone
-    db 32 ; len
+    db 20 ; len
     db END_PLAYBACK
 
 SECTION "Song", ROMX
@@ -40,7 +40,9 @@ Next_note:
     ld a, c
     cp END_PLAYBACK
     error z ;hard crash on end of song
+    push hl
     call Tone ; should play until called again
+    pop hl
     ;now set note_len and advance note_pos again
     inc hl
     ld a, [hl]
